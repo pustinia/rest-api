@@ -23,16 +23,25 @@ export class PostsService {
       (item) => item.title === post.title,
     );
     if (titleExists) {
-      throw new UnprocessableEntityException('post title already exists');
+      throw new UnprocessableEntityException(`post title already exists`);
     }
     // find the next id for a new blog post
     const maxId: number = Math.max(...this.posts.map((post) => post.id), 0);
     const id: number = maxId + 1;
+    // Spread each object
     const blogPost: PostModel = {
       ...post,
       id,
     };
     this.posts.push(blogPost);
     return blogPost;
+  }
+  // delete post
+  public delete(id: number): void {
+    const index: number = this.posts.findIndex((post) => post.id === id);
+    if (index === -1) {
+      throw new NotFoundException('Post not found.');
+    }
+    this.posts.splice(index, 1);
   }
 }

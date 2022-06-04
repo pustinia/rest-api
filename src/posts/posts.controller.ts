@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { PostModel } from './posts.interface';
 import { PostsService } from './posts.service';
 
@@ -16,9 +24,15 @@ export class PostsController {
   public findOne(@Param('id', ParseIntPipe) id: number): PostModel {
     return this.postsService.findOne(id);
   }
-  // post create. delete는 집에서 하자. 졸림....
+  // @Body decorator to parse the HTTP body
+  // JSON.parse() on the HTTP body and provide us with a JSON object for controller.
   @Post()
   public create(@Body() post: PostModel): PostModel {
     return this.postsService.create(post);
+  }
+  // delete posts by id
+  @Delete(':id')
+  public delete(@Param('id', ParseIntPipe) id: number): void {
+    this.postsService.delete(id);
   }
 }
