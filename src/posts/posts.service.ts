@@ -8,14 +8,10 @@ import { PostModel } from './posts.interface';
 
 @Injectable()
 export class PostsService {
-  logger: Logger;
-
+  // logger
+  private readonly logger = new Logger(PostsService.name);
   // eslint-disable-next-line prettier/prettier
   private posts : Array<PostModel> = [];
-
-  constructor() {
-    this.logger = new Logger();
-  }
 
   // get all posts array data
   public findAll(): Array<PostModel> {
