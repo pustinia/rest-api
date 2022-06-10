@@ -74,4 +74,9 @@ Nest is [MIT licensed](LICENSE).
 
 ## Node.js version
 
-- v18.2.0
+- v18.2.0  
+
+## My history  
+| date | descriptions |
+|------|--------------|
+|2022-06-10| typeorm, swagger add, posts CRUD complete. |
