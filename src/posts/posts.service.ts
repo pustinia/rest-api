@@ -4,74 +4,94 @@ import {
   UnprocessableEntityException,
   Logger,
 } from '@nestjs/common';
-import { PostModel } from './posts.interface';
+import { CommonModel } from '../common/common.model';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Posts } from './posts.entity';
+
+// Repository is just like EntityManager but its operations are limited to a concrete entity.
 
 @Injectable()
 export class PostsService {
   // logger
   private readonly logger = new Logger(PostsService.name);
-  // eslint-disable-next-line prettier/prettier
-  private posts : Array<PostModel> = [];
+  // create constructor
+  constructor(
+    @InjectRepository(Posts)
+    private postsRepository: Repository<Posts>,
+  ) {}
 
   // get all posts array data
-  public findAll(): Array<PostModel> {
-    return this.posts;
+  async findAll(): Promise<Posts[]> {
+    return await this.postsRepository.find();
   }
+
   // get post by id number
-  public findOne(id: number): PostModel {
-    const post: PostModel = this.posts.find((post) => post.id === id);
+  async findOne(id: number): Promise<Posts> {
+    const post: Posts = await this.postsRepository.findOneBy({ id });
     if (!post) {
       throw new NotFoundException('post not found');
     }
     return post;
   }
+
   // create post
-  public create(post: PostModel): PostModel {
-    const titleExists: boolean = this.posts.some(
-      (item) => item.title === post.title,
-    );
-    if (titleExists) {
+  async create(post: Posts): Promise<Posts> {
+    const titleExistCount: number = await this.postsRepository.countBy({
+      title: post.title,
+    });
+    if (titleExistCount) {
       throw new UnprocessableEntityException(`post title already exists`);
     }
-    // find the next id for a new blog post
-    const maxId: number = Math.max(...this.posts.map((post) => post.id), 0);
-    const id: number = maxId + 1;
-    // Spread each object
-    const blogPost: PostModel = {
-      ...post,
-      id,
-    };
-    this.posts.push(blogPost);
-    return blogPost;
+    return await this.postsRepository.save(post);
   }
+
   // delete post
-  public delete(id: number): void {
-    const index: number = this.posts.findIndex((post) => post.id === id);
-    if (index === -1) {
+  async delete(id: number): Promise<CommonModel> {
+    const idExistCount: number = await this.postsRepository.countBy({ id });
+    if (!idExistCount) {
       throw new NotFoundException('Post not found.');
     }
-    this.posts.splice(index, 1);
+    /* DeleteResult
+    {
+        "raw": [],
+        "affected": 1
+    } */
+    const deleteResult: DeleteResult = await this.postsRepository.delete(id);
+    if (!deleteResult.affected) {
+      throw new NotFoundException('Post not found.');
+    }
+    return new CommonModel(`id: ${id} delete complete.`);
   }
+
   // update post
   // update it with newly submitted data, and return the updated post
-  public update(id: number, post: PostModel): PostModel {
+  async update(id: number, post: Posts): Promise<CommonModel> {
     this.logger.log(`Updating post with id : ${id}`);
-    const index: number = this.posts.findIndex((post) => post.id === id);
-    if (index === -1) {
+    const idExistCount: number = await this.postsRepository.countBy({ id });
+    if (!idExistCount) {
       throw new NotFoundException('Post not found.');
     }
-    // checking exist title
-    const titleExists: boolean = this.posts.some(
-      (item) => item.title === post.title && item.id !== post.id,
-    );
-    if (titleExists) {
-      throw new UnprocessableEntityException('Post title already exists.');
+    const titleExistCount: number = await this.postsRepository.countBy({
+      title: post.title,
+    });
+    if (titleExistCount) {
+      throw new UnprocessableEntityException(`post title already exists`);
     }
-    const blogPost: PostModel = {
-      ...post,
+    /*
+    {
+    "generatedMaps": [],
+    "raw": [],
+    "affected": 1
+    }
+    */
+    const updateResult: UpdateResult = await this.postsRepository.update(
       id,
-    };
-    this.posts[index] = blogPost;
-    return blogPost;
+      post,
+    );
+    if (!updateResult.affected) {
+      throw new NotFoundException('Post not found.');
+    }
+    return new CommonModel(`id: ${id} update complete.`);
   }
 }

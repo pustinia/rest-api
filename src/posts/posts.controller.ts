@@ -17,8 +17,9 @@ import {
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { HttpExceptionFilter } from 'src/filters/http-exception.filter';
-import { PostModel } from './posts.interface';
 import { PostsService } from './posts.service';
+import { Posts } from './posts.entity'; // 여기서 dto, dao를 나눠야 하나?
+import { CommonModel } from 'src/common/common.model';
 
 @Controller('posts')
 @ApiTags('posts')
@@ -29,7 +30,7 @@ export class PostsController {
   // get posts service
   @Get()
   @ApiOkResponse({ description: 'Posts retrieved successfully.' })
-  public findAll(): Array<PostModel> {
+  public findAll(): Promise<Posts[]> {
     return this.postsService.findAll();
   }
 
@@ -38,7 +39,7 @@ export class PostsController {
   @Get(':id')
   @ApiOkResponse({ description: 'Post retrieved successfully.' })
   @ApiNotFoundResponse({ description: 'Post not found.' })
-  public findOne(@Param('id', ParseIntPipe) id: number): PostModel {
+  public findOne(@Param('id', ParseIntPipe) id: number): Promise<Posts> {
     return this.postsService.findOne(id);
   }
 
@@ -47,7 +48,7 @@ export class PostsController {
   @Post()
   @ApiCreatedResponse({ description: 'Post created successfully.' })
   @ApiUnprocessableEntityResponse({ description: 'Post title already exists.' })
-  public create(@Body() post: PostModel): PostModel {
+  public create(@Body() post: Posts): Promise<Posts> {
     return this.postsService.create(post);
   }
 
@@ -55,8 +56,8 @@ export class PostsController {
   @Delete(':id')
   @ApiOkResponse({ description: 'Post deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Post not found.' })
-  public delete(@Param('id', ParseIntPipe) id: number): void {
-    this.postsService.delete(id);
+  public delete(@Param('id', ParseIntPipe) id: number): Promise<CommonModel> {
+    return this.postsService.delete(id);
   }
 
   // update post by id
@@ -66,8 +67,8 @@ export class PostsController {
   @ApiUnprocessableEntityResponse({ description: 'Post title already exists.' })
   public update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() post: PostModel,
-  ): PostModel {
+    @Body() post: Posts,
+  ): Promise<CommonModel> {
     return this.postsService.update(id, post);
   }
 }
