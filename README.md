@@ -80,3 +80,4 @@ Nest is [MIT licensed](LICENSE).
 | date | descriptions |
 |------|--------------|
 |2022-06-10| typeorm, swagger add, posts CRUD complete. |
+|2022-06-10| checking test module |
